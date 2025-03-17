@@ -521,3 +521,61 @@
 
 	new/obj/machinery/atmospherics/components/unary/hypertorus/core(loc, TRUE)
 	qdel(src)
+
+//LET THERE BE CIRCUITRY
+/obj/item/circuit_component/hypertorus_interface
+	display_name = "Hypertorus Fusion Reactor Interface"
+	desc = "unadulterated suffering. Heed thy warning, mortal creature."
+	//needed inputs: Fuel data & temp, moderator data & temp, coolant temp?, output temp, moderator filter list, instability, Heater value, coolant flow value, restrictor value, damper
+	// INPUT IS THINGS WE CAN CHANGE
+	// OUTPUT IS UNCHANGEABLE DATA FROM THE MACHINE
+	var/datum/port/input/ //dummy port for CRTL C/v
+
+	var/datum/port/input/heating_conductor
+	var/datum/port/input/magnetic_constrictor
+	var/datum/port/input/current_damper
+	var/datum/port/input/cooling_volume
+	var/datum/port/input/fuel_injection_rate
+	var/datum/port/input/moderator_injection_rate
+
+
+	//needed outputs: Heater, coolant volume, restrictor, damper,
+	var/datum/port/output/on_fail //if theres an error
+	var/datum/port/output/why_fail //why the error happened
+
+	var/datum/port/outpt/fusion_gasdata
+	var/datum/port/output/moderator_gasdata
+	var/datum/port/output/energy_level
+	var/datum/port/output/heat_output
+	var/datum/port/output/instability
+	var/datum/port/output/integrity
+	var/datum/port/output/power_level
+	var/datum/port/output/iron_content
+	var/datum/port/output/fusion_temperature
+	var/datum/port/output/moderator_temperature
+	var/datum/port/output/output_temperature
+	var/datum/port/output/coolant_temperature
+
+	var/obj/machinery/hypertorus/interface/attached_interface //our reference to the connected interface. no interface, no control.
+
+/obj/item/circuit_component/hypertorus_interface/populate_ports()
+
+	heating_conductor = add_input_port("Heating conductor", PORT_TYPE_NUMBER)
+	magnetic_constrictor = add_input_port("Magnetic Constrictor", PORT_TYPE_NUMBER)
+	current_damper = add_input_port("Current Damper", PORT_TYPE_NUMBER)
+	cooling_volume = add_input_port("Cooling Volume", PORT_TYPE_NUMBER)
+	fuel_injection_rate = add_input_port("Fuel Injection Rate", PORT_TYPE_NUMBER)
+	moderator_injection_rate = add_input_port("Moderator Injection Rate", PORT_TYPE_NUMBER)
+
+	fusion_gasdata = add_output_port("Fusion gas list", PORT_TYPE_TABLE)
+	moderator_gasdata = add_output_port("Moderator gas list", PORT_TYPE_TABLE)
+	energy_level = add_output_port("Energy Level", PORT_TYPE_NUMBER)
+	heat_output = add_output_port("Heat Output", PORT_TYPE_NUMBER)
+	instability = add_output_port("Instability", PORT_TYPE_NUMBER)
+	integrity = add_output_port("Integrity", PORT_TYPE_NUMBER)
+	power_level = add_output_port("Power Level", PORT_TYPE_NUMBER)
+	iron_content = add_output_port("Iron Content", PORT_TYPE_NUMBER)
+	fusion_temperature = add_output_port("Fusion Temperature", PORT_TYPE_NUMBER)
+	moderator_temperature = add_output_port("Moderator Temperature", PORT_TYPE_NUMBER)
+	output_temperature = add_output_port("Output Temperature", PORT_TYPE_NUMBER)
+	coolant_temperature = add_output_port("Coolant Temperature", PORT_TYPE_NUMBER)
