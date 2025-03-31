@@ -537,13 +537,14 @@
 	var/datum/port/input/cooling_volume
 	var/datum/port/input/fuel_injection_rate
 	var/datum/port/input/moderator_injection_rate
+	var/datum/port/input/moderator_filtering_rate
 
 
 	//needed outputs: Heater, coolant volume, restrictor, damper,
 	var/datum/port/output/on_fail //if theres an error
 	var/datum/port/output/why_fail //why the error happened
 
-	var/datum/port/outpt/fusion_gasdata
+	var/datum/port/output/fusion_gasdata
 	var/datum/port/output/moderator_gasdata
 	var/datum/port/output/energy_level
 	var/datum/port/output/heat_output
@@ -566,6 +567,7 @@
 	cooling_volume = add_input_port("Cooling Volume", PORT_TYPE_NUMBER)
 	fuel_injection_rate = add_input_port("Fuel Injection Rate", PORT_TYPE_NUMBER)
 	moderator_injection_rate = add_input_port("Moderator Injection Rate", PORT_TYPE_NUMBER)
+	moderator_filtering_rate = add_input_port("Moderator Filtering Rate", PORT_TYPE_NUMBER)
 
 	fusion_gasdata = add_output_port("Fusion gas list", PORT_TYPE_TABLE)
 	moderator_gasdata = add_output_port("Moderator gas list", PORT_TYPE_TABLE)
@@ -579,3 +581,12 @@
 	moderator_temperature = add_output_port("Moderator Temperature", PORT_TYPE_NUMBER)
 	output_temperature = add_output_port("Output Temperature", PORT_TYPE_NUMBER)
 	coolant_temperature = add_output_port("Coolant Temperature", PORT_TYPE_NUMBER)
+
+/obj/item/circuit_component/hypertorus_interface/register_usb_parent(atom/movable/shell)
+	. = ..()
+	if(istype(shell, /obj/machinery/hypertorus/interface))
+		attached_interface = shell
+
+/obj/item/circuit_component/hypertorus_interface/unregister_usb_parent(atom/movable/shell)
+	attached_interface = null
+	return ..()
