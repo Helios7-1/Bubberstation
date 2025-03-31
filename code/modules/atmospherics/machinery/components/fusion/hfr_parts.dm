@@ -590,3 +590,41 @@
 /obj/item/circuit_component/hypertorus_interface/unregister_usb_parent(atom/movable/shell)
 	attached_interface = null
 	return ..()
+
+/obj/item/circuit_component/hypertorus_interface/input_received(datum/port/input/port, list/return_values)
+	if(!attached_interface)
+		on_fail.set_output(COMPONENT_SIGNAL)
+		why_fail.set_output("Not Connected!")
+		return
+	if(!attached_interface.activated)
+		on_fail.set_output(COMPONENT_SIGNAL)
+		why_fail.set_output("Inactive Hypertorus.")
+	//TODO: Value range sanity checks go here. add if needed
+
+	if(COMPONENT_TRIGGERED_BY(port, heating_conductor))
+		heating_conductor.set_value(attached_interface.connected_core.heating_conductor)
+		return
+
+	if(COMPONENT_TRIGGERED_BY(port, magnetic_constrictor))
+		magnetic_constrictor.set_value(attached_interface.connected_core.magnetic_constrictor)
+		return
+
+	if(COMPONENT_TRIGGERED_BY(port, current_damper))
+		current_damper.set_value(attached_interface.connected_core.current_damper)
+		return
+
+	if(COMPONENT_TRIGGERED_BY(port, cooling_volume))
+		cooling_volume.set_value(attached_interface.connected_core.airs[1].volume)
+		return
+
+	if(COMPONENT_TRIGGERED_BY(port, fuel_injection_rate))
+		fuel_injection_rate.set_value(attached_interface.connected_core.fuel_injection_rate)
+		return
+
+	if(COMPONENT_TRIGGERED_BY(port, moderator_injection_rate))
+		moderator_injection_rate.set_value(attached_interface.connected_core.moderator_injection_rate)
+		return
+
+	if(COMPONENT_TRIGGERED_BY(port, moderator_filtering_rate))
+		moderator_filtering_rate.set_value(attached_interface.connected_core.moderator_filtering_rate)
+		return
