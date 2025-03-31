@@ -601,6 +601,7 @@
 		why_fail.set_output("Inactive Hypertorus.")
 	//TODO: Value range sanity checks go here. add if needed
 
+	//input section
 	if(COMPONENT_TRIGGERED_BY(port, heating_conductor))
 		heating_conductor.set_value(attached_interface.connected_core.heating_conductor)
 		return
@@ -628,3 +629,19 @@
 	if(COMPONENT_TRIGGERED_BY(port, moderator_filtering_rate))
 		moderator_filtering_rate.set_value(attached_interface.connected_core.moderator_filtering_rate)
 		return
+
+	//output section
+	//these are just values we need to red from the HFR, we cant change them directly.
+
+	fusion_gasdata.set_output(attached_interface.connected_core.fusion_gasdata)
+	moderator_gasdata.set_output(attached_interface.connected_core.moderator_gasdata)
+	energy_level.set_output(attached_interface.connected_core.energy)
+	heat_output.set_output(attached_interface.connected_core.heat_output)
+	instability.set_output(attached_interface.connected_core.instability)
+	integrity.set_output(attached_interface.connected_core.get_integrity_percent())
+	power_level.set_output(attached_interface.connected_core.power_level)
+	iron_content.set_output(attached_interface.connected_core.iron_content)
+	fusion_temperature.set_output(attached_interface.connected_core.fusion_temperature)
+	moderator_temperature.set_output(attached_interface.connected_core.moderator_temperature)
+	output_temperature.set_output(attached_interface.connected_core.output_temperature)
+	coolant_temperature.set_output(attached_interface.connected_core.coolant_temperature)
