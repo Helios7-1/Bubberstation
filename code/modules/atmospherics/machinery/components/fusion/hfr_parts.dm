@@ -558,6 +558,7 @@
 	var/datum/port/output/coolant_temperature
 
 	var/obj/machinery/hypertorus/interface/attached_interface //our reference to the connected interface. no interface, no control.
+	//var/obj/machinery/atmospherics/components/unary/hypertorus/core/attached_core
 
 /obj/item/circuit_component/hypertorus_interface/populate_ports()
 
@@ -586,9 +587,12 @@
 	. = ..()
 	if(istype(shell, /obj/machinery/hypertorus/interface))
 		attached_interface = shell
+		RegisterSignal(attached_interface.connected_core, COMSIG_HYPERTORUS_ON_FUSION, PROC_REF(on_fusion_update))
+
 
 /obj/item/circuit_component/hypertorus_interface/unregister_usb_parent(atom/movable/shell)
 	attached_interface = null
+	UnregisterSignal(shell, list(COMSIG_HYPERTORUS_ON_FUSION))
 	return ..()
 
 /obj/item/circuit_component/hypertorus_interface/input_received(datum/port/input/port, list/return_values)
@@ -599,42 +603,42 @@
 	if(!attached_interface.activated)
 		on_fail.set_output(COMPONENT_SIGNAL)
 		why_fail.set_output("Inactive Hypertorus.")
-	//TODO: Value range sanity checks go here. add if needed
+	//TODO: Test sanity check Clamp() statements
 
 	//input section
 	if(COMPONENT_TRIGGERED_BY(port, heating_conductor))
-		heating_conductor.set_value(attached_interface.connected_core.heating_conductor)
+		heating_conductor.set_value(clamp(attached_interface.connected_core.heating_conductor, 50, 500))
 		return
 
 	if(COMPONENT_TRIGGERED_BY(port, magnetic_constrictor))
-		magnetic_constrictor.set_value(attached_interface.connected_core.magnetic_constrictor)
+		magnetic_constrictor.set_value(clamp(attached_interface.connected_core.magnetic_constrictor, 50, 1000)) // clamps the possible value. set_value() assumes all values are valid, so this is needed.
 		return
 
 	if(COMPONENT_TRIGGERED_BY(port, current_damper))
-		current_damper.set_value(attached_interface.connected_core.current_damper)
+		current_damper.set_value(clamp(attached_interface.connected_core.current_damper, 0, 1000))
 		return
 
 	if(COMPONENT_TRIGGERED_BY(port, cooling_volume))
-		cooling_volume.set_value(attached_interface.connected_core.airs[1].volume)
+		cooling_volume.set_value(clamp(attached_interface.connected_core.airs[1].volume, 50, 2000))
 		return
 
 	if(COMPONENT_TRIGGERED_BY(port, fuel_injection_rate))
-		fuel_injection_rate.set_value(attached_interface.connected_core.fuel_injection_rate)
+		fuel_injection_rate.set_value(clamp(attached_interface.connected_core.fuel_injection_rate, 0.5, 150))
 		return
 
 	if(COMPONENT_TRIGGERED_BY(port, moderator_injection_rate))
-		moderator_injection_rate.set_value(attached_interface.connected_core.moderator_injection_rate)
+		moderator_injection_rate.set_value(clamp(attached_interface.connected_core.moderator_injection_rate, 0.5, 150))
 		return
 
 	if(COMPONENT_TRIGGERED_BY(port, moderator_filtering_rate))
-		moderator_filtering_rate.set_value(attached_interface.connected_core.moderator_filtering_rate)
+		moderator_filtering_rate.set_value(clamp(attached_interface.connected_core.moderator_filtering_rate, 5, 200))
 		return
 
-	//output section
-	//these are just values we need to red from the HFR, we cant change them directly.
+//okay so now we're listening for fusion in our connected HFR to fire. when it does, start setting our outputs.area
+//we cant change the outputs using circuitry 1 for 1, these values are set by the machine and we present them to the circuit.
+/obj/item/circuit_component/hypertorus_interface/proc/on_fusion_update(datum/source)
+	SIGNAL_HANDLER
 
-	fusion_gasdata.set_output(attached_interface.connected_core.fusion_gasdata)
-	moderator_gasdata.set_output(attached_interface.connected_core.moderator_gasdata)
 	energy_level.set_output(attached_interface.connected_core.energy)
 	heat_output.set_output(attached_interface.connected_core.heat_output)
 	instability.set_output(attached_interface.connected_core.instability)
@@ -645,3 +649,37 @@
 	moderator_temperature.set_output(attached_interface.connected_core.moderator_temperature)
 	output_temperature.set_output(attached_interface.connected_core.output_temperature)
 	coolant_temperature.set_output(attached_interface.connected_core.coolant_temperature)
+	//brute force parsing
+	var/list/formatted_fusion_gasdata = list()
+	if(attached_interface.connected_core.internal_fusion.total_moles())
+		for(var/gas_type in attached_interface.connected_core.internal_fusion.gases)
+			var/datum/gas/gas = gas_type
+			formatted_fusion_gasdata.Add(list(list(
+			"id"= initial(gas.id),
+			"amount" = round(attached_interface.connected_core.internal_fusion.gases[gas][MOLES], 0.01),
+			)))
+	else
+		for(var/gas_type in attached_interface.connected_core.internal_fusion.gases)
+			var/datum/gas/gas = gas_type
+			formatted_fusion_gasdata.Add(list(list(
+				"id"= initial(gas.id),
+				"amount" = 0,
+				)))
+	fusion_gasdata.set_output(formatted_fusion_gasdata) //yippe!!
+	//parse harder
+	var/list/formatted_moderator_gasdata = list()
+	if(attached_interface.connected_core.moderator_internal.total_moles())
+		for(var/gas_type in attached_interface.connected_core.moderator_internal.gases)
+			var/datum/gas/gas = gas_type
+			formatted_moderator_gasdata.Add(list(list(
+			"id"= initial(gas.id),
+			"amount" = round(attached_interface.connected_core.moderator_internal.gases[gas][MOLES], 0.01),
+			)))
+	else
+		for(var/gas_type in attached_interface.connected_core.moderator_internal.gases)
+			var/datum/gas/gas = gas_type
+			formatted_moderator_gasdata.Add(list(list(
+				"id"= initial(gas.id),
+				"amount" = 0,
+				)))
+	moderator_gasdata.set_output(formatted_moderator_gasdata)
